@@ -101,7 +101,7 @@ codex plugin add xiaoyang-speaking-coach@xiaoyang-speaking-coach
     </td>
     <td width="50%">
       <h3>🧩 智能拆题</h3>
-      <p>输入一个大主题或上传 PDF，通过本机 Agent 自动拆解为更小、更可执行的表达题目，并保存到自定义主题组。</p>
+      <p>输入一个大主题或上传 PDF，通过本机 Agent 自动拆解为更小、更可执行的表达题目；支持低、中、高拆解深度，并保存到自定义主题组。</p>
     </td>
   </tr>
   <tr>

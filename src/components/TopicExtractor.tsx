@@ -3,9 +3,11 @@ import { Bot, Check, ClipboardPaste, Copy, FileText, Lightbulb, ListChecks, Load
 import GroupPicker from './GroupPicker'
 import {
   buildAgentPrompt,
+  extractionDepths,
   extractionDomains,
   parseAgentOutput,
   type ExtractedTopic,
+  type ExtractionDepth,
   type ExtractionDomain,
 } from '../lib/topicExtraction'
 import type { CustomGroup, Lang } from '../data/topics'
@@ -68,6 +70,8 @@ const copy = {
     providerRetry: '重新检测',
     providerChecking: '正在检测本机 Agent…',
     domainLabel: '拆解领域',
+    depthLabel: '拆解深度',
+    depthHint: '低=概念与基础问题；中=原因、案例和应用；高=机制、证据、争议和边界。',
     customCount: '自定义',
     customCountPlaceholder: '输入数量',
     customCountHint: '可输入 1–50 个',
@@ -126,6 +130,8 @@ const copy = {
     providerRetry: 'Check again',
     providerChecking: 'Checking local Agent…',
     domainLabel: 'Domain',
+    depthLabel: 'Extraction depth',
+    depthHint: 'Low = concepts and basics; Medium = causes, cases, and application; High = mechanisms, evidence, debates, and boundaries.',
     customCount: 'Custom',
     customCountPlaceholder: 'Enter count',
     customCountHint: '1–50',
@@ -170,6 +176,7 @@ export default function TopicExtractor({ lang, customGroups, onSave }: TopicExtr
   const [tab, setTab] = useLocalState<'theme' | 'pdf'>('sayfield-extractor-tab', 'theme')
   const [theme, setTheme] = useLocalState('sayfield-extractor-theme', '')
   const [domain, setDomain] = useLocalState<string>('sayfield-extractor-domain', 'general')
+  const [depth, setDepth] = useLocalState<ExtractionDepth>('sayfield-extractor-depth', 'medium')
   const [customDomains, setCustomDomains] = useLocalState<string[]>('sayfield-extractor-custom-domains', [])
   const [customDomainDraft, setCustomDomainDraft] = useState('')
   const [customCountDraft, setCustomCountDraft] = useLocalState('sayfield-extractor-custom-count-draft', '')
@@ -240,9 +247,10 @@ export default function TopicExtractor({ lang, customGroups, onSave }: TopicExtr
     theme,
     fileName,
     domain,
+    depth,
     count,
     lang,
-  }), [count, domain, fileName, lang, tab, theme])
+  }), [count, depth, domain, fileName, lang, tab, theme])
 
   const validate = () => {
     if (tab === 'theme' && !theme.trim()) {
@@ -480,6 +488,23 @@ export default function TopicExtractor({ lang, customGroups, onSave }: TopicExtr
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="extractor-field">
+            <span>{t.depthLabel}</span>
+            <div className="depth-grid">
+              {extractionDepths.map((item) => (
+                <button
+                  className={depth === item.id ? 'is-active' : ''}
+                  onClick={() => setDepth(item.id)}
+                  key={item.id}
+                >
+                  <b>{item.label[lang]}</b>
+                  <small>{item.description[lang]}</small>
+                </button>
+              ))}
+            </div>
+            <p className="field-hint">{t.depthHint}</p>
           </div>
 
           <div className="extractor-field">

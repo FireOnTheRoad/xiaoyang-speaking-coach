@@ -2772,6 +2772,45 @@ button:disabled {
   color: rgba(255, 255, 255, 0.6);
 }
 
+.depth-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.depth-grid button {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: transparent;
+  text-align: left;
+}
+
+.depth-grid button:hover,
+.depth-grid button.is-active {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+
+.depth-grid b {
+  font-size: 12px;
+}
+
+.depth-grid small {
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.depth-grid button.is-active small,
+.depth-grid button:hover small {
+  color: rgba(255, 255, 255, 0.62);
+}
+
 .count-switch {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -3020,6 +3059,7 @@ button:disabled {
 
 @media (max-width: 560px) {
   .domain-grid,
+  .depth-grid,
   .agent-steps {
     grid-template-columns: 1fr;
   }
