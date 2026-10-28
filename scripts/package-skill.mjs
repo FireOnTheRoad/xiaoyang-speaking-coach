@@ -25,6 +25,7 @@ for (const file of files) {
   cpSync(source, join(appDir, file))
 }
 cpSync(join(root, 'src'), join(appDir, 'src'), { recursive: true })
+cpSync(join(root, 'docs', 'assets'), join(appDir, 'docs', 'assets'), { recursive: true })
 mkdirSync(join(appDir, 'scripts'), { recursive: true })
 cpSync(join(root, 'scripts', 'transcribe.py'), join(appDir, 'scripts', 'transcribe.py'))
 writeFileSync(
