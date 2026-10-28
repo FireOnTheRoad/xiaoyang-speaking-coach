@@ -1,7 +1,7 @@
 # 言之有物 · 安装说明
 
 > 适用平台：macOS / Windows / Linux  
-> GitHub 仓库：https://github.com/XiaoYangUncle/speaking-practice-coach  
+> GitHub 仓库：https://github.com/XiaoYangUncle/xiaoyang-speaking-coach  
 > 默认本地地址：http://127.0.0.1:5173/
 
 “言之有物”是一个在个人电脑上运行的中英双语表达训练网页。它支持题目练习、计时、录音、Agent 分析和 Obsidian 同步。
@@ -34,7 +34,7 @@ npm -v
 ### 1. 下载仓库
 
 ```bash
-git clone https://github.com/XiaoYangUncle/speaking-practice-coach.git
+git clone https://github.com/XiaoYangUncle/xiaoyang-speaking-coach.git
 ```
 
 不会使用 Git 时，也可以在 GitHub 页面点击 `Code → Download ZIP`，然后解压。
@@ -79,16 +79,16 @@ Agent 会自动安装依赖、构建应用并启动本地网页。首次运行�
 ### macOS / Linux
 
 ```bash
-git clone https://github.com/XiaoYangUncle/speaking-practice-coach.git
-cd speaking-practice-coach/skills/xiaoyang-speaking-coach
+git clone https://github.com/XiaoYangUncle/xiaoyang-speaking-coach.git
+cd xiaoyang-speaking-coach/skills/xiaoyang-speaking-coach
 node scripts/start-local.mjs
 ```
 
 ### Windows PowerShell
 
 ```powershell
-git clone https://github.com/XiaoYangUncle/speaking-practice-coach.git
-cd speaking-practice-coach\skills\xiaoyang-speaking-coach
+git clone https://github.com/XiaoYangUncle/xiaoyang-speaking-coach.git
+cd xiaoyang-speaking-coach\skills\xiaoyang-speaking-coach
 node .\scripts\start-local.mjs
 ```
 

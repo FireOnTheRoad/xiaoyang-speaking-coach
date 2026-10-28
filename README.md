@@ -23,7 +23,7 @@
   ·
   <a href="#obsidian-输出示例">Obsidian</a>
   ·
-  <a href="https://github.com/XiaoYangUncle/speaking-practice-coach"><b>GitHub</b></a>
+  <a href="https://github.com/XiaoYangUncle/xiaoyang-speaking-coach"><b>GitHub</b></a>
 </p>
 
 ---
@@ -37,7 +37,7 @@
 适合已经使用 **Codex** 或 **Claude Code** 的朋友。
 
 ```bash
-git clone https://github.com/XiaoYangUncle/speaking-practice-coach.git
+git clone https://github.com/XiaoYangUncle/xiaoyang-speaking-coach.git
 ```
 
 将 `skills/xiaoyang-speaking-coach` 复制到对应 Skill 目录：
@@ -56,8 +56,8 @@ Claude Code: ~/.claude/skills/xiaoyang-speaking-coach
 ### 方式二：直接启动
 
 ```bash
-git clone https://github.com/XiaoYangUncle/speaking-practice-coach.git
-cd speaking-practice-coach/skills/xiaoyang-speaking-coach
+git clone https://github.com/XiaoYangUncle/xiaoyang-speaking-coach.git
+cd xiaoyang-speaking-coach/skills/xiaoyang-speaking-coach
 node scripts/start-local.mjs
 ```
 
@@ -192,7 +192,7 @@ flowchart LR
 ## 目录
 
 ```text
-speaking-practice-coach/
+xiaoyang-speaking-coach/
 ├── INSTALL.md                         # 朋友可读的安装说明
 ├── skills/
 │   └── xiaoyang-speaking-coach/       # 自包含 Agent Skill
