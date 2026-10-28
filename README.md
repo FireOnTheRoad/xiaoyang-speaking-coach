@@ -5,6 +5,7 @@
 - Skill 名称：`xiaoyang-speaking-coach`
 - 中文产品名：言之有物
 - 默认本地地址：`http://127.0.0.1:5173/`
+- 完整安装说明：[INSTALL.md](INSTALL.md)
 
 ## 最终用户：通过 Skill 本地部署
 
