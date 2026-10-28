@@ -1,0 +1,4 @@
+interface:
+  display_name: "言之有物 · 小杨叔叔表达教练"
+  short_description: "由 XiaoYangUncle 打造的中英表达训练与 Agent 复盘工作台"
+  default_prompt: "Use $speaking-practice-coach-by-xiaoyanguncle to install, start, and operate 言之有物 by XiaoYangUncle locally."

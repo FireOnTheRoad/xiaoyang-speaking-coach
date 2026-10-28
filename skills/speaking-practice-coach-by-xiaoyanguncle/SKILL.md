@@ -1,11 +1,11 @@
 ---
-name: speaking-practice-coach
-description: Install, run, and operate “言之有物” / Speaking Practice Coach as a local web app. Use when a user wants to deploy the speaking-training webpage on 127.0.0.1, practice impromptu / research / structured speaking, extract topics from a subject or PDF, record and transcribe an attempt, score delivery, track progress, or sync training records to Obsidian.
+name: speaking-practice-coach-by-xiaoyanguncle
+description: Install, run, and operate “言之有物” / Speaking Practice Coach by XiaoYangUncle as a local web app. Use when a user wants to deploy the speaking-training webpage on 127.0.0.1, practice impromptu / research / structured speaking, extract topics from a subject or PDF, record and transcribe an attempt, score delivery, track progress, or sync training records to Obsidian.
 metadata:
   short-description: 本地部署中英双语表达训练工作台
 ---
 
-# 言之有物 · Speaking Practice Coach
+# 言之有物 · Speaking Practice Coach by XiaoYangUncle
 
 ## Purpose
 
@@ -62,6 +62,7 @@ For an analysis request, return a structured result with transcript, overall sco
 
 ## Brand
 
-- Chinese display name: 言之有物
+- Chinese display name: 言之有物 · 小杨叔叔表达教练
+- GitHub: @XiaoYangUncle
 - Product surface: speaking practice coach
-- Skill identifier: `speaking-practice-coach`
+- Skill identifier: `speaking-practice-coach-by-xiaoyanguncle`
