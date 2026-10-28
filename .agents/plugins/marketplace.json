@@ -1,0 +1,26 @@
+{
+  "name": "xiaoyang-speaking-coach",
+  "interface": {
+    "displayName": "XiaoYangUncle"
+  },
+  "plugins": [
+    {
+      "name": "xiaoyang-speaking-coach",
+      "source": {
+        "source": "local",
+        "path": "."
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": [
+          "CODEX"
+        ]
+      },
+      "category": "Education & Research",
+      "interface": {
+        "displayName": "言之有物 · 小杨叔叔表达教练"
+      }
+    }
+  ]
+}

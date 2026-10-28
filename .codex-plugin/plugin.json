@@ -1,0 +1,43 @@
+{
+  "name": "xiaoyang-speaking-coach",
+  "version": "0.1.0",
+  "description": "Install and operate 言之有物, a local-first bilingual speaking practice studio with topic extraction, timed recording, Agent analysis, progress history, and Obsidian sync.",
+  "author": {
+    "name": "XiaoYangUncle",
+    "url": "https://github.com/XiaoYangUncle"
+  },
+  "homepage": "https://github.com/XiaoYangUncle/xiaoyang-speaking-coach",
+  "repository": "https://github.com/XiaoYangUncle/xiaoyang-speaking-coach",
+  "keywords": [
+    "speaking",
+    "speech",
+    "coach",
+    "bilingual",
+    "recording",
+    "obsidian",
+    "agent",
+    "practice"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "言之有物 · 小杨叔叔表达教练",
+    "shortDescription": "本地运行的中英表达训练与 Agent 复盘工作台",
+    "longDescription": "在本地启动言之有物网页，完成主题拆解、即兴/研究/结构化训练、录音转写、Agent 评分、成长记录和 Obsidian 同步。",
+    "developerName": "XiaoYangUncle",
+    "category": "Education & Research",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/XiaoYangUncle/xiaoyang-speaking-coach",
+    "composerIcon": "./.codex-plugin/assets/composer-icon.svg",
+    "logo": "./.codex-plugin/assets/logo.svg",
+    "defaultPrompt": [
+      "使用言之有物在本地启动中英表达训练",
+      "把一个大主题或 PDF 拆成可练习的小主题",
+      "分析我的训练录音并给出评分和优化建议"
+    ],
+    "brandColor": "#FF5A36"
+  }
+}

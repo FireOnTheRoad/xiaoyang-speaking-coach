@@ -72,7 +72,22 @@ Agent 会自动安装依赖、构建应用并启动本地网页。首次运行�
 
 ---
 
-## 三、备用方式：直接启动
+## 三、Codex 插件市场方式
+
+```bash
+codex plugin marketplace add XiaoYangUncle/xiaoyang-speaking-coach
+codex plugin add xiaoyang-speaking-coach@xiaoyang-speaking-coach
+```
+
+安装完成后，对 Codex 说：
+
+```text
+使用 $xiaoyang-speaking-coach 在本地启动言之有物
+```
+
+---
+
+## 四、备用方式：直接启动
 
 不想使用 Agent，也可以直接在终端启动。
 
@@ -117,7 +132,7 @@ node .\scripts\start-local.mjs
 
 ---
 
-## 四、首次使用
+## 五、首次使用
 
 1. 浏览器询问麦克风权限时，选择允许。
 2. 建议佩戴耳机，麦克风距离嘴部约 10–20 厘米。
@@ -141,7 +156,7 @@ node .\scripts\start-local.mjs
 
 ---
 
-## 五、Obsidian 同步
+## 六、Obsidian 同步
 
 1. 先安装并打开一次 Obsidian。
 2. 在“成长记录”页面点击 `Obsidian 设置`。
@@ -164,7 +179,7 @@ node .\scripts\start-local.mjs
 
 ---
 
-## 六、常见问题
+## 七、常见问题
 
 ### `node: command not found`
 
@@ -192,7 +207,7 @@ node .\scripts\start-local.mjs
 
 ---
 
-## 七、数据说明
+## 八、数据说明
 
 - 训练历史、偏好和录音保存在该浏览器对应的本地站点数据中。
 - 清除浏览器站点数据会同时清除训练历史和录音。

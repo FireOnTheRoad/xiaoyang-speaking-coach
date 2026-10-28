@@ -69,6 +69,15 @@ http://127.0.0.1:5173/
 
 > 完整 macOS / Windows 步骤、端口配置、麦克风权限和常见问题见 **[INSTALL.md](INSTALL.md)**。
 
+### 方式三：作为 Codex Git 插件市场安装
+
+```bash
+codex plugin marketplace add XiaoYangUncle/xiaoyang-speaking-coach
+codex plugin add xiaoyang-speaking-coach@xiaoyang-speaking-coach
+```
+
+> 这是 Git 托管的自定义插件市场，不依赖 OpenAI 官方精选市场。
+
 ## 为什么不一样
 
 | 能力 | 说明 |
