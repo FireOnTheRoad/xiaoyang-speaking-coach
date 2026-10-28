@@ -84,6 +84,7 @@ const text = {
     speechHint: '看进度段，不必追求每句话都完美。',
     finishHint: '本轮已完成。你可以选择保存这次训练，或直接丢弃。',
     recordingOn: '录音中',
+    liveAudio: '实时音量',
     recordingOff: '开启录音',
     recordingRequesting: '正在请求麦克风…',
     recordingError: '麦克风不可用，本次只记录计时。',
@@ -121,6 +122,7 @@ const text = {
     speechHint: 'Follow the segments, not every sentence.',
     finishHint: 'Round complete. Choose whether to save this attempt or discard it.',
     recordingOn: 'Recording',
+    liveAudio: 'Live level',
     recordingOff: 'Enable recording',
     recordingRequesting: 'Requesting microphone…',
     recordingError: 'Microphone unavailable. This round will only record timing.',
@@ -193,12 +195,18 @@ export default function SpeechTimer({
   const [recordingState, setRecordingState] = useState<'idle' | 'requesting' | 'recording' | 'error'>('idle')
   const [recordingError, setRecordingError] = useState('')
   const [recordingDevice, setRecordingDevice] = useState('')
+  const [audioLevel, setAudioLevel] = useState(0)
+  const [waveform, setWaveform] = useState<number[]>(Array.from({ length: 32 }, () => 0))
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
   const recordingStartedAtRef = useRef(0)
   const recognitionRef = useRef<any>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const meterFrameRef = useRef<number | null>(null)
+  const meterLastUpdateRef = useRef(0)
+  const meterLevelRef = useRef(0)
   const recordingStartLockRef = useRef(false)
   const transcriptRef = useRef('')
   const processStartedAtRef = useRef(Date.now())
@@ -238,6 +246,42 @@ export default function SpeechTimer({
       elapsedSeconds: Math.max(0, Math.round((now - processStartedAtRef.current) / 100) / 10),
       ...extra,
     })
+  }
+
+  const stopAudioMeter = () => {
+    if (meterFrameRef.current !== null) {
+      cancelAnimationFrame(meterFrameRef.current)
+      meterFrameRef.current = null
+    }
+    analyserRef.current = null
+    meterLevelRef.current = 0
+    setAudioLevel(0)
+  }
+
+  const startAudioMeter = (analyser: AnalyserNode) => {
+    analyserRef.current = analyser
+    const samples = new Uint8Array(analyser.fftSize)
+    const draw = (now: number) => {
+      const currentAnalyser = analyserRef.current
+      if (!currentAnalyser) return
+      currentAnalyser.getByteTimeDomainData(samples)
+      let sum = 0
+      for (let index = 0; index < samples.length; index += 1) {
+        const value = (samples[index] - 128) / 128
+        sum += value * value
+      }
+      const rms = Math.sqrt(sum / samples.length)
+      const target = Math.min(1, rms * 3.2)
+      meterLevelRef.current = meterLevelRef.current * 0.55 + target * 0.45
+      if (now - meterLastUpdateRef.current >= 40) {
+        meterLastUpdateRef.current = now
+        const level = meterLevelRef.current
+        setAudioLevel(level)
+        setWaveform((current) => [...current.slice(1), level])
+      }
+      meterFrameRef.current = requestAnimationFrame(draw)
+    }
+    meterFrameRef.current = requestAnimationFrame(draw)
   }
 
   const setRunningState = (next: boolean) => {
@@ -287,6 +331,7 @@ export default function SpeechTimer({
   useEffect(() => {
     // Process events start after the countdown.
     return () => {
+      stopAudioMeter()
       if (pauseStartedAtRef.current !== null) {
         pausedMillisecondsRef.current += Date.now() - pauseStartedAtRef.current
         pauseStartedAtRef.current = null
@@ -322,6 +367,7 @@ export default function SpeechTimer({
     }
 
     const cleanup = () => {
+      stopAudioMeter()
       audioChunksRef.current = []
       mediaRecorderRef.current = null
       stream?.getTracks().forEach((track) => track.stop())
@@ -414,6 +460,9 @@ export default function SpeechTimer({
         const audioContext = new AudioContext()
         if (audioContext.state === 'suspended') await audioContext.resume()
         const source = audioContext.createMediaStreamSource(stream)
+        const analyser = audioContext.createAnalyser()
+        analyser.fftSize = 256
+        analyser.smoothingTimeConstant = 0.65
         const compressor = audioContext.createDynamicsCompressor()
         compressor.threshold.value = -24
         compressor.knee.value = 24
@@ -421,10 +470,12 @@ export default function SpeechTimer({
         compressor.attack.value = 0.003
         compressor.release.value = 0.25
         const destination = audioContext.createMediaStreamDestination()
-        source.connect(compressor)
+        source.connect(analyser)
+        analyser.connect(compressor)
         compressor.connect(destination)
         recordingStream = destination.stream
         audioContextRef.current = audioContext
+        startAudioMeter(analyser)
       } catch {
         audioContextRef.current = null
       }
@@ -469,6 +520,7 @@ export default function SpeechTimer({
       setRecordingState('error')
       setRecordingError(error instanceof DOMException && error.name === 'NotAllowedError' ? t.recordingPermission : t.recordingFailed)
       setRecordingEnabled(false)
+      stopAudioMeter()
       mediaStreamRef.current?.getTracks().forEach((track) => track.stop())
       mediaStreamRef.current = null
       void audioContextRef.current?.close()
@@ -655,6 +707,22 @@ export default function SpeechTimer({
               {recordingState === 'recording' && !transcriptRef.current && recordingDevice && <small>{recordingDevice}</small>}
             </div>
             {recordingState === 'error' && recordingError && <p className="recording-error-message">{recordingError}</p>}
+            {recordingState === 'recording' && (
+              <div className="audio-meter" aria-label={`${t.liveAudio} ${Math.round(audioLevel * 100)}%`}>
+                <div className="audio-meter-head">
+                  <span>{t.liveAudio}</span>
+                  <b>{Math.round(audioLevel * 100)}%</b>
+                </div>
+                <div className="audio-meter-bars" aria-hidden="true">
+                  {waveform.map((value, index) => (
+                    <i key={index} style={{ height: `${Math.max(5, value * 100)}%` }} />
+                  ))}
+                </div>
+                <div className="audio-meter-track" aria-hidden="true">
+                  <i style={{ width: `${Math.min(100, audioLevel * 100)}%` }} />
+                </div>
+              </div>
+            )}
             {phase === 'speech' && <p className="recording-tip">{lang === 'zh' ? '为了减少回声，建议佩戴耳机，麦克风离嘴 10–20 cm。' : 'For cleaner audio, wear headphones and keep the mic 10–20 cm away.'}</p>}
           </div>
 

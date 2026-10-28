@@ -111,7 +111,7 @@ codex plugin add xiaoyang-speaking-coach@xiaoyang-speaking-coach
     </td>
     <td width="50%">
       <h3>🎙️ 录音与回放</h3>
-      <p>表达阶段自动录音，优先选择真实麦克风；启动失败可重试，结束后由用户选择保存或丢弃本轮记录。</p>
+      <p>表达阶段自动录音，实时显示音量波形；启动失败可重试，结束后由用户选择保存或丢弃本轮记录。</p>
     </td>
   </tr>
   <tr>

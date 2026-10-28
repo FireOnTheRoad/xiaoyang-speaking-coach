@@ -3815,6 +3815,66 @@ button:disabled {
   color: rgba(255, 255, 255, 0.42);
 }
 
+.audio-meter {
+  width: min(100%, 460px);
+  margin-top: 14px;
+}
+
+.audio-meter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.audio-meter-head b {
+  color: var(--lime);
+  font-variant-numeric: tabular-nums;
+}
+
+.audio-meter-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 52px;
+  padding: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.audio-meter-bars i {
+  flex: 1;
+  min-width: 2px;
+  height: 5%;
+  border-radius: 3px 3px 1px 1px;
+  background: linear-gradient(to top, #d9f26a 0%, #ffd37a 58%, #ff7a68 100%);
+  transition: height 70ms linear;
+}
+
+.audio-meter-track {
+  height: 3px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.audio-meter-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d9f26a, #ff7a68);
+  transition: width 70ms linear;
+}
+
 .recording-error-message {
   max-width: 420px;
   margin-top: 7px;
