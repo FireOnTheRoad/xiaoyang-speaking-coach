@@ -1,0 +1,4 @@
+interface:
+  display_name: "言之有物 · 中英表达训练"
+  short_description: "在本地启动中英表达训练网页与 Agent 复盘流程"
+  default_prompt: "Use $bilingual-speaking-practice to install, start, and operate the 言之有物 bilingual speaking practice app locally."
