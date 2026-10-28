@@ -4,7 +4,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const skillDir = join(root, 'skills', 'bilingual-speaking-practice')
+const skillDir = join(root, 'skills', 'speaking-practice-coach')
 const appDir = join(skillDir, 'assets', 'app')
 const files = [
   'package.json',

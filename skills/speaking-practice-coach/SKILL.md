@@ -1,11 +1,11 @@
 ---
-name: bilingual-speaking-practice
-description: Install, run, and operate “言之有物” bilingual speaking practice as a local web app. Use when a user wants to deploy the speaking-training webpage on 127.0.0.1, practice impromptu / research / structured speaking, extract topics from a subject or PDF, record and transcribe an attempt, score delivery, track progress, or sync training records to Obsidian.
+name: speaking-practice-coach
+description: Install, run, and operate “言之有物” / Speaking Practice Coach as a local web app. Use when a user wants to deploy the speaking-training webpage on 127.0.0.1, practice impromptu / research / structured speaking, extract topics from a subject or PDF, record and transcribe an attempt, score delivery, track progress, or sync training records to Obsidian.
 metadata:
   short-description: 本地部署中英双语表达训练工作台
 ---
 
-# 言之有物 · Bilingual speaking practice
+# 言之有物 · Speaking Practice Coach
 
 ## Purpose
 
@@ -63,5 +63,5 @@ For an analysis request, return a structured result with transcript, overall sco
 ## Brand
 
 - Chinese display name: 言之有物
-- Product surface: bilingual speaking practice studio
-- Skill identifier: `bilingual-speaking-practice`
+- Product surface: speaking practice coach
+- Skill identifier: `speaking-practice-coach`

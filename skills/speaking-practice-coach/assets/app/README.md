@@ -2,7 +2,7 @@
 
 一个在本地运行的中英双语表达训练网页，也是一套可安装的 Agent Skill。功能逻辑参考随机主题 + 计时练习这一常见训练模式，但信息架构、题库组织、视觉系统和交互均由本项目独立实现。
 
-- Skill 名称：`bilingual-speaking-practice`
+- Skill 名称：`speaking-practice-coach`
 - 中文产品名：言之有物
 - 默认本地地址：`http://127.0.0.1:5173/`
 
@@ -11,19 +11,19 @@
 要求：Node.js 20+、npm，以及支持本地 Skill 的 Codex / Claude Code 环境。
 
 1. 克隆本仓库。
-2. 将 `skills/bilingual-speaking-practice` 复制到你的 Skill 目录：
-   - Codex：`~/.codex/skills/bilingual-speaking-practice`
-   - Claude Code：`~/.claude/skills/bilingual-speaking-practice`
+2. 将 `skills/speaking-practice-coach` 复制到你的 Skill 目录：
+   - Codex：`~/.codex/skills/speaking-practice-coach`
+   - Claude Code：`~/.claude/skills/speaking-practice-coach`
 3. 对 Agent 说：
 
 ```text
-使用 $bilingual-speaking-practice 在本地启动言之有物
+使用 $speaking-practice-coach 在本地启动言之有物
 ```
 
 也可以不通过 Agent，直接启动：
 
 ```bash
-cd skills/bilingual-speaking-practice
+cd skills/speaking-practice-coach
 node scripts/start-local.mjs
 ```
 
@@ -95,7 +95,7 @@ npm run package:skill
 
 ## 目录
 
-- `skills/bilingual-speaking-practice`：可分发的完整 Skill，包含应用快照、启动脚本与部署说明
+- `skills/speaking-practice-coach`：可分发的完整 Skill，包含应用快照、启动脚本与部署说明
 - `scripts/package-skill.mjs`：将根目录应用同步进 Skill 的内置应用目录
 - `src/data/topics.ts`：双语主题库
 - `src/components/SpeechTimer.tsx`：计时与表达阶段状态机
