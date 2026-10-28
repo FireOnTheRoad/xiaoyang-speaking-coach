@@ -3,7 +3,7 @@ import { Mic, MicOff, Pause, Play, RotateCcw, Square, Volume2, VolumeX, X } from
 import type { Lang, Topic } from '../data/topics'
 
 export type PracticeMode = 'quick' | 'research' | 'structure'
-type TimerPhase = 'prep' | 'ready' | 'speech' | 'done'
+type TimerPhase = 'countdown' | 'prep' | 'ready' | 'speech' | 'done'
 
 export interface RecordedAttempt {
   blob: Blob
@@ -65,6 +65,8 @@ const text = {
   zh: {
     prep: '准备阶段',
     ready: '准备完成',
+    countdown: '准备开始',
+    countdownHint: '倒计时结束后进入本轮练习。',
     speech: '表达计时',
     done: '本轮完成',
     research: '查阅与梳理',
@@ -80,17 +82,28 @@ const text = {
     structureStages: ['结论', '三点论据', '例子', '收束'],
     prepHint: '先找角度，不要急着写完整稿。',
     speechHint: '看进度段，不必追求每句话都完美。',
-    finishHint: '已记录本次练习。说出一个可改进点，再开始下一轮。',
+    finishHint: '本轮已完成。你可以选择保存这次训练，或直接丢弃。',
     recordingOn: '录音中',
     recordingOff: '开启录音',
     recordingRequesting: '正在请求麦克风…',
     recordingError: '麦克风不可用，本次只记录计时。',
+    retryRecording: '重试麦克风',
+    recordingPermission: '浏览器没有拿到麦克风权限，请在地址栏允许麦克风后重试。',
+    recordingFailed: '麦克风启动失败，请检查浏览器权限和音频设备。',
+    saveRound: '保存本轮记录',
+    discardRound: '不保存',
+    savingRound: '正在保存…',
+    savedRound: '已保存本轮记录',
+    discardedRound: '本轮未保存',
+
     finishSpeech: '结束表达',
     transcriptReady: '已获取转写',
   },
   en: {
     prep: 'Preparation',
     ready: 'Ready to speak',
+    countdown: 'Get ready',
+    countdownHint: 'The round starts when the countdown ends.',
     speech: 'Speech timer',
     done: 'Round complete',
     research: 'Research & organize',
@@ -106,11 +119,20 @@ const text = {
     structureStages: ['Claim', 'Three points', 'Example', 'Close'],
     prepHint: 'Find an angle first. Do not write a full script.',
     speechHint: 'Follow the segments, not every sentence.',
-    finishHint: 'Recorded. Name one improvement before the next round.',
+    finishHint: 'Round complete. Choose whether to save this attempt or discard it.',
     recordingOn: 'Recording',
     recordingOff: 'Enable recording',
     recordingRequesting: 'Requesting microphone…',
     recordingError: 'Microphone unavailable. This round will only record timing.',
+    retryRecording: 'Retry microphone',
+    recordingPermission: 'The browser did not receive microphone permission. Allow it in the address bar and retry.',
+    recordingFailed: 'Microphone failed to start. Check browser permissions and audio devices.',
+    saveRound: 'Save this round',
+    discardRound: 'Discard',
+    savingRound: 'Saving…',
+    savedRound: 'This round is saved',
+    discardedRound: 'This round was discarded',
+
     finishSpeech: 'Finish speech',
     transcriptReady: 'Transcript captured',
   },
@@ -161,13 +183,13 @@ export default function SpeechTimer({
   onRecordingComplete,
 }: SpeechTimerProps) {
   const t = text[lang]
-  const initialPhase: TimerPhase = mode === 'quick' ? 'speech' : 'prep'
-  const [phase, setPhase] = useState<TimerPhase>(initialPhase)
-  const [remaining, setRemaining] = useState(mode === 'quick' ? speechSeconds : prepSeconds)
+  const [phase, setPhase] = useState<TimerPhase>('countdown')
+  const [remaining, setRemaining] = useState(3)
   const [running, setRunning] = useState(true)
   const completionRef = useRef(false)
   const lastTickRef = useRef<number | null>(null)
   const [recordingEnabled, setRecordingEnabled] = useState(true)
+  const recordingEnabledRef = useRef(true)
   const [recordingState, setRecordingState] = useState<'idle' | 'requesting' | 'recording' | 'error'>('idle')
   const [recordingError, setRecordingError] = useState('')
   const [recordingDevice, setRecordingDevice] = useState('')
@@ -175,7 +197,6 @@ export default function SpeechTimer({
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
   const recordingStartedAtRef = useRef(0)
-  const sessionIdRef = useRef<string | null>(null)
   const recognitionRef = useRef<any>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const recordingStartLockRef = useRef(false)
@@ -189,6 +210,10 @@ export default function SpeechTimer({
   const pausedMillisecondsRef = useRef(0)
   const recordingStartedRef = useRef(false)
   const recordingEventRef = useRef(false)
+  const lastCountdownRef = useRef<number | null>(null)
+  const pendingRecordingPromiseRef = useRef<Promise<RecordedAttempt | null> | null>(null)
+  const pendingResultRef = useRef<{ spokenSeconds: number; process: PracticeProcess } | null>(null)
+  const [saveState, setSaveState] = useState<'pending' | 'saving' | 'saved' | 'discarded'>('pending')
 
   const prepLabel = mode === 'research' ? t.research : t.structurePrep
   const stages = useMemo(() => {
@@ -197,8 +222,8 @@ export default function SpeechTimer({
     return [...t.quickStages]
   }, [mode, t])
 
-  const activeDuration = phase === 'prep' ? prepSeconds : speechSeconds
-  const progress = phase === 'ready' ? 1 : phase === 'done' ? 1 : 1 - remaining / Math.max(1, activeDuration)
+  const activeDuration = phase === 'countdown' ? 3 : phase === 'prep' ? prepSeconds : speechSeconds
+  const progress = phase === 'countdown' || phase === 'ready' || phase === 'done' ? (phase === 'countdown' ? 0 : 1) : 1 - remaining / Math.max(1, activeDuration)
   const stageThresholds = stages.map((_, index) => (index + 1) / stages.length)
   const hitCount = phase === 'done' ? stages.length : phase === 'speech' ? stageThresholds.filter((threshold) => progress >= threshold - 0.01).length : 0
 
@@ -246,8 +271,21 @@ export default function SpeechTimer({
     appendProcessEvent(nextPhase === 'prep' ? 'prep_started' : 'speech_started')
   }
 
+  const beginRound = () => {
+    const nextPhase: TimerPhase = mode === 'quick' ? 'speech' : 'prep'
+    resetProcess(nextPhase)
+    setPhase(nextPhase)
+    setRemaining(nextPhase === 'speech' ? speechSeconds : prepSeconds)
+    runningRef.current = true
+    setRunning(true)
+  }
+
   useEffect(() => {
-    appendProcessEvent(initialPhase === 'prep' ? 'prep_started' : 'speech_started')
+    recordingEnabledRef.current = recordingEnabled
+  }, [recordingEnabled])
+
+  useEffect(() => {
+    // Process events start after the countdown.
     return () => {
       if (pauseStartedAtRef.current !== null) {
         pausedMillisecondsRef.current += Date.now() - pauseStartedAtRef.current
@@ -272,7 +310,7 @@ export default function SpeechTimer({
     })
   }, [phase, progress, stageThresholds, stages.length])
 
-  const stopRecording = (save: boolean) => {
+  const stopRecording = (collect = false): Promise<RecordedAttempt | null> => new Promise((resolve) => {
     recordingStartLockRef.current = false
     const recorder = mediaRecorderRef.current
     const stream = mediaStreamRef.current
@@ -283,44 +321,43 @@ export default function SpeechTimer({
       recognitionRef.current = null
     }
 
+    const cleanup = () => {
+      audioChunksRef.current = []
+      mediaRecorderRef.current = null
+      stream?.getTracks().forEach((track) => track.stop())
+      mediaStreamRef.current = null
+      void audioContextRef.current?.close()
+      audioContextRef.current = null
+      setRecordingState('idle')
+    }
+
     if (recorder && recorder.state !== 'inactive') {
       recorder.onstop = () => {
         const mimeType = recorder.mimeType || audioChunksRef.current[0]?.type || 'audio/webm'
         const blob = new Blob(audioChunksRef.current, { type: mimeType })
         const duration = Math.max(1, Math.round((Date.now() - recordingStartedAtRef.current) / 1000))
-        const sessionId = sessionIdRef.current
-        if (save && sessionId && blob.size > 0) {
-          onRecordingComplete?.(sessionId, {
-            blob,
-            mimeType,
-            duration,
-            transcript: transcriptRef.current.trim() || undefined,
-            deviceLabel: recordingDevice || undefined,
-          })
-        }
-        audioChunksRef.current = []
-        mediaRecorderRef.current = null
-        stream?.getTracks().forEach((track) => track.stop())
-        mediaStreamRef.current = null
-        void audioContextRef.current?.close()
-        audioContextRef.current = null
-        setRecordingState('idle')
+        const recording = blob.size > 0
+          ? {
+              blob,
+              mimeType,
+              duration,
+              transcript: transcriptRef.current.trim() || undefined,
+              deviceLabel: recordingDevice || undefined,
+            }
+          : null
+        cleanup()
+        resolve(collect ? recording : null)
       }
       recorder.stop()
       return
     }
 
-    stream?.getTracks().forEach((track) => track.stop())
-    mediaStreamRef.current = null
-    mediaRecorderRef.current = null
-    audioChunksRef.current = []
-    void audioContextRef.current?.close()
-    audioContextRef.current = null
-    setRecordingState('idle')
-  }
+    cleanup()
+    resolve(null)
+  })
 
-  const startRecording = async () => {
-    if (recordingStartLockRef.current || !recordingEnabled || recordingState === 'requesting' || recordingState === 'recording') return
+  const startRecording = async (force = false) => {
+    if (recordingStartLockRef.current || (!recordingEnabledRef.current && !force) || recordingState === 'requesting' || recordingState === 'recording') return
     recordingStartLockRef.current = true
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
       setRecordingState('error')
@@ -339,6 +376,7 @@ export default function SpeechTimer({
         channelCount: 1,
       }
       let stream = await navigator.mediaDevices.getUserMedia({ audio: baseAudioConstraints })
+      mediaStreamRef.current = stream
 
       try {
         const devices = await navigator.mediaDevices.enumerateDevices()
@@ -353,6 +391,7 @@ export default function SpeechTimer({
           stream = await navigator.mediaDevices.getUserMedia({
             audio: { ...baseAudioConstraints, deviceId: { exact: preferred.deviceId } },
           })
+          mediaStreamRef.current = stream
         }
         const activeLabel = stream.getAudioTracks()[0]?.label || preferred?.label || ''
         setRecordingDevice(activeLabel)
@@ -365,7 +404,7 @@ export default function SpeechTimer({
         setRecordingDevice(stream.getAudioTracks()[0]?.label || '')
       }
 
-      if (!recordingEnabled) {
+      if ((!recordingEnabledRef.current && !force) || completionRef.current || !runningRef.current) {
         stream.getTracks().forEach((track) => track.stop())
         setRecordingState('idle')
         return
@@ -373,6 +412,7 @@ export default function SpeechTimer({
       let recordingStream = stream
       try {
         const audioContext = new AudioContext()
+        if (audioContext.state === 'suspended') await audioContext.resume()
         const source = audioContext.createMediaStreamSource(stream)
         const compressor = audioContext.createDynamicsCompressor()
         compressor.threshold.value = -24
@@ -424,9 +464,10 @@ export default function SpeechTimer({
         recognition.start()
         recognitionRef.current = recognition
       }
-    } catch {
+    } catch (error) {
+      recordingEnabledRef.current = false
       setRecordingState('error')
-      setRecordingError(t.recordingError)
+      setRecordingError(error instanceof DOMException && error.name === 'NotAllowedError' ? t.recordingPermission : t.recordingFailed)
       setRecordingEnabled(false)
       mediaStreamRef.current?.getTracks().forEach((track) => track.stop())
       mediaStreamRef.current = null
@@ -466,13 +507,30 @@ export default function SpeechTimer({
       finishReason,
       events: [...processEventsRef.current],
     }
-    sessionIdRef.current = onComplete(spokenSeconds, process)
-    stopRecording(true)
+    pendingResultRef.current = { spokenSeconds, process }
+    pendingRecordingPromiseRef.current = stopRecording(true)
+    setSaveState('pending')
     if (soundOn && !recordingWasActive) makeCue('finish')
   }
 
+  const saveCompletedRound = async () => {
+    if (saveState !== 'pending' || !pendingResultRef.current) return
+    setSaveState('saving')
+    const { spokenSeconds, process } = pendingResultRef.current
+    const sessionId = onComplete(spokenSeconds, process)
+    const recording = await pendingRecordingPromiseRef.current
+    if (recording && recording.blob.size > 0) onRecordingComplete?.(sessionId, recording)
+    setSaveState('saved')
+  }
+
+  const discardCompletedRound = () => {
+    setSaveState('discarded')
+    pendingResultRef.current = null
+    pendingRecordingPromiseRef.current = null
+  }
+
   const handleClose = () => {
-    stopRecording(false)
+    void stopRecording(false)
     onClose()
   }
 
@@ -483,6 +541,20 @@ export default function SpeechTimer({
     }, 250)
     return () => window.clearInterval(interval)
   }, [phase, running])
+
+  useEffect(() => {
+    if (phase !== 'countdown') return
+    if (remaining <= 0) {
+      beginRound()
+      if (soundOn) makeCue('start')
+      return
+    }
+    const count = Math.ceil(remaining)
+    if (lastCountdownRef.current !== count) {
+      lastCountdownRef.current = count
+      if (soundOn) makeCue('tick')
+    }
+  }, [phase, remaining, soundOn])
 
   useEffect(() => {
     if (remaining > 0 || phase === 'ready' || phase === 'done') return
@@ -527,29 +599,30 @@ export default function SpeechTimer({
   const startSpeech = () => {
     completionRef.current = false
     lastTickRef.current = null
-    sessionIdRef.current = null
     transcriptRef.current = ''
-    resetProcess('speech')
     setRemaining(speechSeconds)
     setPhase('speech')
+    runningRef.current = true
     setRunning(true)
     if (soundOn) makeCue('start')
   }
 
   const retry = () => {
-    stopRecording(false)
+    void stopRecording(false)
     completionRef.current = false
     lastTickRef.current = null
-    sessionIdRef.current = null
+    lastCountdownRef.current = null
     transcriptRef.current = ''
-    resetProcess(initialPhase)
-    setPhase(initialPhase)
-    setRemaining(initialPhase === 'speech' ? speechSeconds : prepSeconds)
+    pendingResultRef.current = null
+    pendingRecordingPromiseRef.current = null
+    setSaveState('pending')
+    setPhase('countdown')
+    setRemaining(3)
+    runningRef.current = true
     setRunning(true)
-    if (soundOn) makeCue('start')
   }
 
-  const statusLabel = phase === 'prep' ? prepLabel : phase === 'ready' ? t.ready : phase === 'speech' ? t.speech : t.done
+  const statusLabel = phase === 'countdown' ? t.countdown : phase === 'prep' ? prepLabel : phase === 'ready' ? t.ready : phase === 'speech' ? t.speech : t.done
 
   return (
     <div className="timer-screen" role="dialog" aria-modal="true" aria-label={statusLabel}>
@@ -566,9 +639,9 @@ export default function SpeechTimer({
 
         <div className="timer-main">
           <div className="timer-count-block">
-            <p>{t.remaining}</p>
-            <strong>{formatTime(remaining)}</strong>
-            <span>{phase === 'prep' ? t.prepHint : phase === 'done' ? t.finishHint : t.speechHint}</span>
+            <p>{phase === 'countdown' ? t.countdown : t.remaining}</p>
+            <strong>{phase === 'countdown' ? Math.max(1, Math.ceil(remaining)) : formatTime(remaining)}</strong>
+            <span>{phase === 'countdown' ? t.countdownHint : phase === 'prep' ? t.prepHint : phase === 'done' ? t.finishHint : t.speechHint}</span>
             <div className={`timer-recording-status is-${recordingState}`}>
               {recordingState === 'recording' ? <Mic size={14} /> : <MicOff size={14} />}
               <b>
@@ -581,6 +654,7 @@ export default function SpeechTimer({
               {recordingState === 'recording' && transcriptRef.current && <small>{t.transcriptReady}</small>}
               {recordingState === 'recording' && !transcriptRef.current && recordingDevice && <small>{recordingDevice}</small>}
             </div>
+            {recordingState === 'error' && recordingError && <p className="recording-error-message">{recordingError}</p>}
             {phase === 'speech' && <p className="recording-tip">{lang === 'zh' ? '为了减少回声，建议佩戴耳机，麦克风离嘴 10–20 cm。' : 'For cleaner audio, wear headphones and keep the mic 10–20 cm away.'}</p>}
           </div>
 
@@ -620,18 +694,45 @@ export default function SpeechTimer({
               {t.finishSpeech}
             </button>
           )}
-          {phase === 'done' && (
-            <button className="button button-accent large" onClick={retry}>
-              <RotateCcw size={18} />
-              {t.again}
-            </button>
+          {phase === 'done' && saveState === 'pending' && (
+            <>
+              <button className="button button-accent large" onClick={() => void saveCompletedRound()}>
+                {t.saveRound}
+              </button>
+              <button className="button button-ghost light" onClick={discardCompletedRound}>
+                {t.discardRound}
+              </button>
+            </>
+          )}
+          {phase === 'done' && saveState === 'saving' && (
+            <span className="timer-save-status">{t.savingRound}</span>
+          )}
+          {phase === 'done' && (saveState === 'saved' || saveState === 'discarded') && (
+            <>
+              <span className="timer-save-status">{saveState === 'saved' ? t.savedRound : t.discardedRound}</span>
+              <button className="button button-accent large" onClick={retry}>
+                <RotateCcw size={18} />
+                {t.again}
+              </button>
+            </>
           )}
           <button
             className={`recording-toggle ${recordingState === 'recording' ? 'is-recording' : ''}`}
             onClick={() => {
-              const next = !recordingEnabled
-              setRecordingEnabled(next)
-              if (!next) stopRecording(false)
+              if (recordingState === 'recording' || recordingState === 'requesting') {
+                recordingEnabledRef.current = false
+                setRecordingEnabled(false)
+                void stopRecording(false)
+                return
+              }
+              if (!recordingEnabled || recordingState === 'error') {
+                recordingEnabledRef.current = true
+                setRecordingEnabled(true)
+                void startRecording(true)
+                return
+              }
+              recordingEnabledRef.current = false
+              setRecordingEnabled(false)
             }}
             disabled={phase === 'done'}
           >
