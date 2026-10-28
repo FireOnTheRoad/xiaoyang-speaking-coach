@@ -3210,6 +3210,46 @@ button:disabled {
   line-height: 1.5;
 }
 
+.agent-setup-guide {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #f0cbbf;
+  border-radius: 12px;
+  background: #fff5f1;
+}
+
+.agent-setup-guide > b {
+  color: #b53a22;
+  font-size: 11px;
+}
+
+.agent-setup-guide p,
+.agent-setup-guide li {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.agent-setup-guide .agent-setup-core {
+  padding: 7px 8px;
+  border-radius: 8px;
+  color: #315b2d;
+  background: #edf7d8;
+  font-weight: 700;
+}
+
+.agent-setup-guide ol {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.agent-setup-guide .button {
+  justify-self: start;
+}
+
 .run-agent-button {
   width: 100%;
 }

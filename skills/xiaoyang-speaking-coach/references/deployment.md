@@ -23,6 +23,36 @@ The script:
 
 Vite prints the final URL. If port 5173 is occupied, it may choose the next free port.
 
+## Agent setup check
+
+The core web app does not require an Agent CLI. These features do require one:
+
+- Automatic topic extraction
+- PDF handoff
+- Recording transcription and scoring
+
+Use either Codex CLI or WorkBuddy CodeBuddy CLI. Opening the desktop application alone is not enough; the local server must find the CLI executable.
+
+```bash
+node scripts/start-local.mjs --doctor
+codex --version
+codex login status
+```
+
+If Codex is installed in a custom location:
+
+```bash
+CODEX_CLI_PATH="/absolute/path/to/codex" node scripts/start-local.mjs
+```
+
+If WorkBuddy is installed in a custom location:
+
+```bash
+WORKBUDDY_CLI_PATH="/absolute/path/to/codebuddy-lite-wb.mjs" node scripts/start-local.mjs
+```
+
+If neither is found, the app still starts and the extractor shows a manual prompt-and-paste flow.
+
 ## Environment variables
 
 - `SAYFIELD_PORT`: local port, default `5173`
@@ -55,7 +85,7 @@ The default note folder is `言之有物/训练记录`. Each session gets one no
 ## Troubleshooting
 
 - `npm` not found: install Node.js 20+ and reopen the terminal.
-- Agent button unavailable: install/log in to Codex CLI or WorkBuddy, then restart the local server.
+- Agent button unavailable: run `node scripts/start-local.mjs --doctor`, install/log in to Codex CLI or WorkBuddy, then restart the local server. The manual extractor flow remains available.
 - PDF extraction fails: confirm the file is readable locally and within the configured size limit.
 - Obsidian sync fails: open Obsidian once so its vault config exists, then select the vault in the app settings.
 - Port already occupied: set `SAYFIELD_PORT` to another port or stop the existing server.

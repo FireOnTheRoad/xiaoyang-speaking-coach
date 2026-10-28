@@ -59,6 +59,14 @@ const copy = {
     pdfContextPlaceholder: '例如：这是我的一篇论文，请重点拆成答辩可能追问的问题',
     providerLabel: '自动调用的 Agent',
     providerHint: '网页通过本地 Agent 路由调用，不会把截图或待拆内容发送给第三方网页。',
+    providerSetupTitle: 'Agent 功能还没有启用',
+    providerSetupIntro: '网页主体可以正常使用；自动拆题和录音评分需要本机找到一个已登录的 Codex CLI 或 WorkBuddy CLI。仅打开 Codex / WorkBuddy 桌面端不等于已经配置好。',
+    providerSetupCore: '当前可用：题库、计时、录音回放、成长记录和 Obsidian 同步。',
+    providerSetupCodex: '方案 A：安装 Codex CLI 并完成 codex login，然后重新启动本地服务。',
+    providerSetupWorkbuddy: '方案 B：安装并登录 WorkBuddy；如果 CLI 不在默认位置，设置 WORKBUDDY_CLI_PATH。',
+    providerSetupPath: '已经装好但这里仍显示不可用时，设置 CODEX_CLI_PATH 或 WORKBUDDY_CLI_PATH 为 CLI 的绝对路径，再重新启动。',
+    providerRetry: '重新检测',
+    providerChecking: '正在检测本机 Agent…',
     domainLabel: '拆解领域',
     customCount: '自定义',
     customCountPlaceholder: '输入数量',
@@ -74,7 +82,7 @@ const copy = {
     countLabel: '希望拆解数量',
     runAgent: '自动调用 Agent 拆解',
     agentRunning: 'Agent 正在拆解…',
-    agentError: '自动调用失败，请检查 Agent 状态后重试。',
+    agentError: '自动调用失败。请确认 Codex CLI 或 WorkBuddy 已安装并登录，然后重启本地服务；也可以直接使用下方的手动提示词流程。',
     authRequired: 'WorkBuddy CLI 还未登录。请先在终端完成一次登录，然后重试。',
     choosePdf: '选择 PDF',
     selectedFile: '已选择',
@@ -109,6 +117,14 @@ const copy = {
     pdfContextPlaceholder: 'e.g. This is my thesis; focus on likely defense questions',
     providerLabel: 'Agent provider',
     providerHint: 'The page calls your local Agent bridge. Your source content is not sent to third-party web services.',
+    providerSetupTitle: 'Agent features are not enabled yet',
+    providerSetupIntro: 'The core web app works without an Agent. Automatic extraction and recording analysis require a signed-in Codex CLI or WorkBuddy CLI found by this local server.',
+    providerSetupCore: 'Available now: topic library, timer, recording playback, progress history, and Obsidian sync.',
+    providerSetupCodex: 'Option A: install and sign in to Codex CLI, then restart the local server.',
+    providerSetupWorkbuddy: 'Option B: install and sign in to WorkBuddy; set WORKBUDDY_CLI_PATH if it is in a custom location.',
+    providerSetupPath: 'If the CLI is installed but still not detected, set CODEX_CLI_PATH or WORKBUDDY_CLI_PATH to its absolute path and restart.',
+    providerRetry: 'Check again',
+    providerChecking: 'Checking local Agent…',
     domainLabel: 'Domain',
     customCount: 'Custom',
     customCountPlaceholder: 'Enter count',
@@ -124,7 +140,7 @@ const copy = {
     countLabel: 'Number of subtopics',
     runAgent: 'Run Agent extraction',
     agentRunning: 'Agent is extracting…',
-    agentError: 'Automatic extraction failed. Check the Agent status and retry.',
+    agentError: 'Automatic extraction failed. Confirm that Codex CLI or WorkBuddy is installed and signed in, then restart the local server. The manual prompt flow below still works.',
     authRequired: 'WorkBuddy CLI is not logged in yet. Complete its one-time login in Terminal, then retry.',
     choosePdf: 'Choose PDF',
     selectedFile: 'Selected',
@@ -172,22 +188,27 @@ export default function TopicExtractor({ lang, customGroups, onSave }: TopicExtr
   const [fileBlob, setFileBlob] = useState<File | null>(null)
   const [autoRunning, setAutoRunning] = useState(false)
   const [autoError, setAutoError] = useState('')
+  const [providerLoading, setProviderLoading] = useState(true)
+
+  const loadProviders = async () => {
+    setProviderLoading(true)
+    try {
+      const response = await fetch('/api/agent/providers')
+      const data = await response.json() as { providers?: ProviderInfo[] }
+      const nextProviders = data.providers ?? []
+      setProviders(nextProviders)
+      const preferred = nextProviders.find((item) => item.id === 'codex' && item.available)
+        ?? nextProviders.find((item) => item.available)
+      if (preferred) setProvider(preferred.id)
+    } catch {
+      setProviders([])
+    } finally {
+      setProviderLoading(false)
+    }
+  }
 
   useEffect(() => {
-    let cancelled = false
-    fetch('/api/agent/providers')
-      .then((response) => response.json())
-      .then((data: { providers?: ProviderInfo[] }) => {
-        if (cancelled || !data.providers) return
-        setProviders(data.providers)
-        const preferred = data.providers.find((item) => item.id === 'codex' && item.available)
-          ?? data.providers.find((item) => item.available)
-        if (preferred) setProvider(preferred.id)
-      })
-      .catch(() => {
-        if (!cancelled) setProviders([])
-      })
-    return () => { cancelled = true }
+    void loadProviders()
   }, [])
 
   const applyCustomCount = () => {
@@ -213,6 +234,7 @@ export default function TopicExtractor({ lang, customGroups, onSave }: TopicExtr
   }
 
   const selectedProvider = providers.find((item) => item.id === provider)
+  const providerReady = providers.some((item) => item.available)
   const agentPrompt = useMemo(() => buildAgentPrompt({
     mode: tab,
     theme,
@@ -394,7 +416,25 @@ export default function TopicExtractor({ lang, customGroups, onSave }: TopicExtr
                 <div className="provider-empty">{t.providerHint}</div>
               )}
             </div>
-            <p className="provider-hint">{t.providerHint}</p>
+            {providerLoading ? (
+              <p className="provider-hint">{t.providerChecking}</p>
+            ) : providerReady ? (
+              <p className="provider-hint">{t.providerHint}</p>
+            ) : (
+              <div className="agent-setup-guide">
+                <b>{t.providerSetupTitle}</b>
+                <p>{t.providerSetupIntro}</p>
+                <p className="agent-setup-core">{t.providerSetupCore}</p>
+                <ol>
+                  <li>{t.providerSetupCodex}</li>
+                  <li>{t.providerSetupWorkbuddy}</li>
+                </ol>
+                <p>{t.providerSetupPath}</p>
+                <button className="button button-ghost" onClick={() => void loadProviders()}>
+                  {t.providerRetry}
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="extractor-field">

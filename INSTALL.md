@@ -25,6 +25,51 @@ npm -v
 
 能显示版本号即可继续。
 
+### 先确认你需要哪一种模式
+
+| 模式 | 你能做什么 | 需要安装 |
+|---|---|---|
+| 基础模式 | 题库、计时、录音、回放、成长记录、Obsidian 同步 | 只需要 Node.js |
+| Agent 模式 | 自动拆题、PDF 拆解、录音转写和评分 | 还需要本机找到并登录 Codex CLI 或 WorkBuddy CLI |
+
+**打开 Codex 或 WorkBuddy 桌面端不等于已经配置好。** 启动脚本必须在本机找到对应 CLI。
+
+检查 Codex CLI：
+
+```bash
+codex --version
+codex login status
+```
+
+如果第二个命令提示未登录，先执行：
+
+```bash
+codex login
+```
+
+如果 Codex CLI 装在了非标准位置，可以启动时指定：
+
+```bash
+CODEX_CLI_PATH="/absolute/path/to/codex" node scripts/start-local.mjs
+```
+
+WorkBuddy 用户需要先在 WorkBuddy 桌面端和 CLI 完成一次登录。若启动脚本没有找到它，可以指定 CLI 文件路径：
+
+```bash
+WORKBUDDY_CLI_PATH="/absolute/path/to/codebuddy-lite-wb.mjs" node scripts/start-local.mjs
+```
+
+启动脚本会打印：
+
+```text
+Agent capability check
+  Core web app : ready
+  Codex        : found / not found
+  WorkBuddy    : found / not found
+```
+
+如果两项都是 `not found`，网页仍然可以启动；只是自动拆题和录音评分会保持关闭。
+
 ---
 
 ## 二、推荐方式：通过 Agent Skill 安装
@@ -105,6 +150,12 @@ node scripts/start-local.mjs
 git clone https://github.com/XiaoYangUncle/xiaoyang-speaking-coach.git
 cd xiaoyang-speaking-coach\skills\xiaoyang-speaking-coach
 node .\scripts\start-local.mjs
+```
+
+启动前建议先自检 Agent 状态：
+
+```bash
+node scripts/start-local.mjs --doctor
 ```
 
 看到下面的地址后，用浏览器打开：
@@ -195,7 +246,20 @@ node .\scripts\start-local.mjs
 
 ### Agent 分析不可用
 
-说明本机没有检测到 Codex CLI 或 WorkBuddy。先安装并登录其中一个 CLI，然后重启本地服务。
+先运行：
+
+```bash
+node scripts/start-local.mjs --doctor
+```
+
+如果显示 `not found`，按以下顺序处理：
+
+1. 安装 Codex CLI 或 WorkBuddy。
+2. 完成 CLI 登录：Codex 使用 `codex login`。
+3. 重启本地服务，不要只刷新浏览器。
+4. 如果 CLI 已安装但仍显示 `not found`，设置 `CODEX_CLI_PATH` 或 `WORKBUDDY_CLI_PATH` 为绝对路径后重新启动。
+
+如果暂时不想配置 Agent，可以直接使用“复制提示词 → 回到 Agent → 粘贴结果”的手动流程。题库、计时、录音和 Obsidian 不受影响。
 
 ### PDF 无法拆解
 

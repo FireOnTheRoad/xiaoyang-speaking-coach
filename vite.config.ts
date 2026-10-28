@@ -11,6 +11,12 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 const CODEX_CANDIDATES = [
   process.env.CODEX_CLI_PATH,
   '/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex',
+  process.env.LOCALAPPDATA ? join(process.env.LOCALAPPDATA, 'Programs', 'ChatGPT', 'resources', 'codex-cli', 'CodexCLI.exe') : '',
+  join(homedir(), '.local', 'bin', 'codex'),
+  join(homedir(), '.npm-global', 'bin', 'codex'),
+  join(homedir(), '.bun', 'bin', 'codex'),
+  '/opt/homebrew/bin/codex',
+  '/usr/local/bin/codex',
   'codex',
 ].filter(Boolean) as string[]
 
@@ -23,6 +29,10 @@ const PDFTOTEXT_CANDIDATES = [
 const WORKBUDDY_CANDIDATES = [
   process.env.WORKBUDDY_CLI_PATH,
   '/Applications/WorkBuddy.app/Contents/Resources/app.asar.unpacked/cli/dist/codebuddy-lite-wb.mjs',
+  process.env.LOCALAPPDATA ? join(process.env.LOCALAPPDATA, 'Programs', 'WorkBuddy', 'resources', 'app.asar.unpacked', 'cli', 'dist', 'codebuddy-lite-wb.mjs') : '',
+  'codebuddy-lite-wb.mjs',
+  'codebuddy',
+  'workbuddy',
 ].filter(Boolean) as string[]
 
 const resolveExecutable = (candidates: string[]) => {
@@ -367,13 +377,13 @@ const getProviders = () => [
     id: 'codex',
     label: 'Codex',
     available: Boolean(codexPath),
-    note: codexPath ? '已安装，可直接自动拆解' : '未找到 Codex CLI',
+    note: codexPath ? '已检测到本机 Codex CLI，可直接使用 Agent 功能' : '未检测到 Codex CLI；网页仍可正常使用，按页面提示配置后即可启用',
   },
   {
     id: 'workbuddy',
     label: 'WorkBuddy',
     available: Boolean(workBuddyMain),
-    note: workBuddyMain ? '已安装；首次使用可能需要在终端完成登录' : '未找到 WorkBuddy CLI',
+    note: workBuddyMain ? '已检测到 WorkBuddy CLI；首次使用可能需要先在终端登录' : '未检测到 WorkBuddy CLI；可改用 Codex，或按部署说明配置 WorkBuddy',
   },
 ]
 

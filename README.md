@@ -69,6 +69,8 @@ http://127.0.0.1:5173/
 
 > 完整 macOS / Windows 步骤、端口配置、麦克风权限和常见问题见 **[INSTALL.md](INSTALL.md)**。
 
+> **Agent 是可选能力。** 基础题库、计时、录音、成长记录和 Obsidian 同步不需要 Codex/WorkBuddy。自动拆题和录音评分需要本机找到并登录其中一个 CLI；只打开桌面端不等于已经配置好。启动脚本会打印 `Agent capability check` 并给出配置提示。
+
 ### 方式三：作为 Codex Git 插件市场安装
 
 ```bash
